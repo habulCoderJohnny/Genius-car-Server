@@ -56,15 +56,15 @@ async function run() {
         const result = await orderCollection.insertOne(order);
         res.send(result);
        }) 
-      //Get data from Db of client checkout data  
+      //Get individual user data from Db of client Order data based on email 
        app.get('/order', async (req,res) =>{
-        const query = {};
+        const email = req.query.email;
+        //console.log(email);
+        const query = {email: email};
         const cursor = orderCollection.find(query);
         const orders = await cursor.toArray();
         res.send(orders);
        })
-       
-
        
     }
     finally{
