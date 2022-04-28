@@ -1,3 +1,4 @@
 node_modules
 .env
-_steps.js
+_steps
+_installed
