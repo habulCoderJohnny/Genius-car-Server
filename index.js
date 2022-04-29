@@ -4,13 +4,32 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
-const app = express();
 require('dotenv').config();
+
+const app = express();
 
 //middleware
 app.use(cors());
 app.use(express.json());
 
+//verify token function 
+function verifyJWT(req,res,next) {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        return res.status(401).send({message:'unauthorized Access!'});
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,(error, decoded)=>{
+        if (error) {
+            return res.status(403).send({message: 'Forbidden Access!!'});
+        }
+        console.log('decoded:', decoded);
+        req.decoded = decoded;
+    })
+    // console.log('inside verifyJWT:', authHeader);
+    next();
+    
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.oxx0c.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -70,13 +89,21 @@ async function run() {
             res.send(result);
         })
         //Get individual user data from Db of client Order data based on email 
-        app.get('/order', async (req, res) => {
+        app.get('/order', verifyJWT, async (req, res) => {
+            const decodedEmail = req.decoded.email;
             const email = req.query.email;
             //console.log(email);
-            const query = { email: email };
-            const cursor = orderCollection.find(query);
-            const orders = await cursor.toArray();
-            res.send(orders);
+            if (email ===decodedEmail) {
+                const query = { email: email };
+                const cursor = orderCollection.find(query);
+                const orders = await cursor.toArray();
+                res.send(orders);
+                
+            }
+            else{
+                res.status(403).send({message:'Forbidden Access'})
+            }
+
         })
 
     }
@@ -94,5 +121,5 @@ app.get('/', (req, res) => {
 });
 //log 
 app.listen(port, () => {
-    console.log('johnny Listening.....port', port);
+    console.log('Backend Listening.....port', port);
 })
