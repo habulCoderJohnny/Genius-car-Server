@@ -2,3 +2,4 @@ node_modules
 .env
 _steps
 _installed
+_steps_server_deploy.js

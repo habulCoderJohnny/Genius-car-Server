@@ -15,12 +15,12 @@ app.use(express.json());
 //verify token function 
 function verifyJWT(req,res,next) {
     const authHeader = req.headers.authorization;
-    if (authHeader) {
+    if (!authHeader) {
         return res.status(401).send({message:'unauthorized Access!'});
     }
     const token = authHeader.split(' ')[1];
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,(error, decoded)=>{
-        if (error) {
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET,(err, decoded)=>{
+        if (err) {
             return res.status(403).send({message: 'Forbidden Access!!'});
         }
         console.log('decoded:', decoded);
@@ -77,7 +77,7 @@ async function run() {
         app.delete('/service/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
-            const result = await userCollection.deleteOne(query);
+            const result = await serviceCollection.deleteOne(query);
             res.send(result);
         });
 
